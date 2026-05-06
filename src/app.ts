@@ -1,15 +1,48 @@
-import express from "express";
-import cors from "cors";
+import express, { Application } from 'express';
+import { createServer, Server } from 'http';
+import cors from 'cors';
 
-const app = express();
+import { organizationRoutes } from './organization/routes/organizationRoutes';
+import { featureFlagRoutes } from './feature/routes/featureFlagRoutes';
+import { userRoutes } from './user/routes/userRoutes';
+import { errorHandler } from './middleware/errorHandler';
 
-app.use(cors());
-app.use(express.json());
+class App {
 
-app.get("/", (req, res) => {
-  res.send("Feature Flag API Running");
-});
+  private static server:Server;
+  private static app:Application;
 
-app.listen(3000, () => {
-  console.log("Server running on port 3000");
-});
+  private static async setupRoutes(){
+    
+    this.app.use(
+      cors({
+        origin: "http://localhost:5174",
+        methods: ["GET", "POST", "PUT", "DELETE"],
+        credentials: true
+      })
+    );
+
+    // Auth endpoints are inside userRoutes now
+    this.app.use('/auth', userRoutes);
+    this.app.use('/organizations', organizationRoutes);
+    this.app.use('/feature-flags', featureFlagRoutes);
+    // this.app.use('/users', userRoutes);
+
+    this.app.use(errorHandler);
+  }
+
+  public static async startServer(port:number){
+    this.app = express();
+    this.app.use(express.json());
+    this.app.use(express.urlencoded({ extended: true }));
+    await this.setupRoutes();
+    
+    this.server = createServer(this.app);
+    this.server.listen(port,()=>{
+      console.info(`Server is running on http://localhost:${port}`);
+    })
+  }
+
+}
+
+export default App;

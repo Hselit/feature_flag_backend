@@ -1,0 +1,1 @@
+export type RoleName = 'SUPER_ADMIN' | 'ORG_ADMIN' | 'END_USER';
