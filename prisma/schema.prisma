@@ -1,0 +1,40 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model Organization {
+  id        Int   @id @default(autoincrement())
+  name      String
+  users     User[]
+  features  FeatureFlag[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt()
+}
+
+model User {
+  id             Int   @id @default(autoincrement())
+  email          String   @unique
+  password       String
+  role           String
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  organizationId Int
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt()
+}
+
+model FeatureFlag {
+  id             Int   @id @default(autoincrement())
+  key            String
+  isEnabled      Boolean  @default(false)
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  organizationId Int
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt()
+
+  @@unique([key, organizationId])
+}
